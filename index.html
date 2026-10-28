@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web-to-APK Studio Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .glass-panel {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .terminal-scroll::-webkit-scrollbar { width: 4px; }
+    .terminal-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen pb-20 selection:bg-blue-500 selection:text-white">
+
+  <!-- Header -->
+  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
+    <div class="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="bg-gradient-to-br from-blue-500 to-purple-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+          <i class="fa-solid fa-code text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">Web2APK Studio</h1>
+          <p class="text-[10px] text-slate-400 uppercase tracking-widest">Cloud Engine</p>
+        </div>
+      </div>
+      <div id="statusBadge" class="px-3 py-1 rounded-full bg-slate-800 text-xs font-semibold text-slate-400 border border-slate-700 flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-slate-500"></div> Standby
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-md mx-auto px-4 py-6">
+    
+    <!-- TAB: BUILDER -->
+    <div id="tab-builder" class="block animate-fade-in">
+      <div class="glass-panel rounded-2xl p-5 mb-6 shadow-xl">
+        <h2 class="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-layer-group text-blue-400"></i> Detail Proyek
+        </h2>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5 ml-1">Nama Aplikasi</label>
+            <input type="text" id="appName" placeholder="Misal: Toko Saya" class="w-full bg-slate-800/50 border border-slate-700 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5 ml-1">URL Website Target</label>
+            <input type="url" id="appUrl" placeholder="https://..." class="w-full bg-slate-800/50 border border-slate-700 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+          </div>
+        </div>
+
+        <button onclick="startBuild()" id="buildBtn" class="w-full mt-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/25 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2">
+          <i class="fa-solid fa-rocket"></i> MULAI COMPILE APK
+        </button>
+      </div>
+
+      <!-- Terminal Monitor -->
+      <div class="glass-panel rounded-2xl p-1 shadow-xl">
+        <div class="bg-slate-950 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+            <span class="text-xs font-mono text-slate-400"><i class="fa-solid fa-terminal mr-1"></i> Live Console</span>
+            <span id="timerText" class="text-xs font-mono text-blue-400">00:00</span>
+          </div>
+          <div id="logBox" class="text-xs font-mono text-slate-300 h-40 overflow-y-auto terminal-scroll whitespace-pre-wrap">Sistem siap. Menunggu perintah...</div>
+        </div>
+      </div>
+
+      <!-- Tombol Download Langsung (Sembunyi by default) -->
+      <div id="downloadContainer" class="hidden mt-6">
+        <button onclick="downloadApk()" id="downloadBtn" class="w-full bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 hover:to-emerald-300 text-slate-900 font-bold py-4 rounded-xl shadow-lg shadow-emerald-500/25 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg">
+          <i class="fa-solid fa-download"></i> UNDUH & INSTALL
+        </button>
+        <p class="text-center text-[10px] text-slate-400 mt-2">File berupa .zip, klik untuk ekstrak dan install .apk</p>
+      </div>
+    </div>
+
+    <!-- TAB: SETTINGS -->
+    <div id="tab-settings" class="hidden animate-fade-in">
+      <div class="glass-panel rounded-2xl p-5 shadow-xl">
+        <h2 class="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-server text-purple-400"></i> Kredensial Server GitHub
+        </h2>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5 ml-1">Username GitHub</label>
+            <input type="text" id="ghUser" class="w-full bg-slate-800/50 border border-slate-700 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-all">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5 ml-1">Nama Repository</label>
+            <input type="text" id="ghRepo" class="w-full bg-slate-800/50 border border-slate-700 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-all">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5 ml-1">Personal Access Token</label>
+            <input type="password" id="ghToken" class="w-full bg-slate-800/50 border border-slate-700 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 transition-all">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5 ml-1">Target Branch</label>
+            <select id="ghBranch" class="w-full bg-slate-800/50 border border-slate-700 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 appearance-none">
+              <option value="main">main</option>
+              <option value="master">master</option>
+            </select>
+          </div>
+          <button onclick="saveSettings()" class="w-full bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold py-3 rounded-xl mt-2 transition-all">
+            Simpan Pengaturan
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Bottom Navigation (Mobile App Style) -->
+  <nav class="fixed bottom-0 w-full bg-slate-900 border-t border-slate-800 pb-safe">
+    <div class="max-w-md mx-auto flex justify-around p-2">
+      <button onclick="switchTab('builder')" id="nav-builder" class="flex flex-col items-center p-2 text-blue-400 w-20 transition-colors">
+        <i class="fa-solid fa-hammer text-lg mb-1"></i>
+        <span class="text-[10px] font-semibold">Builder</span>
+      </button>
+      <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center p-2 text-slate-500 hover:text-slate-300 w-20 transition-colors">
+        <i class="fa-solid fa-gear text-lg mb-1"></i>
+        <span class="text-[10px] font-semibold">Setting</span>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    let checkInterval;
+    let buildStartTime;
+    let timerInterval;
+    let finalArtifactUrl = "";
+
+    // Load saved settings
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById('ghUser').value = localStorage.getItem('ghUser') || '';
+      document.getElementById('ghRepo').value = localStorage.getItem('ghRepo') || '';
+      document.getElementById('ghToken').value = localStorage.getItem('ghToken') || '';
+      document.getElementById('ghBranch').value = localStorage.getItem('ghBranch') || 'main';
+    });
+
+    function saveSettings() {
+      localStorage.setItem('ghUser', document.getElementById('ghUser').value.trim());
+      localStorage.setItem('ghRepo', document.getElementById('ghRepo').value.trim());
+      localStorage.setItem('ghToken', document.getElementById('ghToken').value.trim());
+      localStorage.setItem('ghBranch', document.getElementById('ghBranch').value);
+      alert("Pengaturan Disimpan!");
+    }
+
+    function switchTab(tab) {
+      document.getElementById('tab-builder').classList.toggle('hidden', tab !== 'builder');
+      document.getElementById('tab-settings').classList.toggle('hidden', tab !== 'settings');
+      
+      document.getElementById('nav-builder').className = `flex flex-col items-center p-2 w-20 transition-colors ${tab === 'builder' ? 'text-blue-400' : 'text-slate-500'}`;
+      document.getElementById('nav-settings').className = `flex flex-col items-center p-2 w-20 transition-colors ${tab === 'settings' ? 'text-blue-400' : 'text-slate-500'}`;
+    }
+
+    function updateLog(msg, color = 'text-slate-300') {
+      const logBox = document.getElementById('logBox');
+      const time = new Date().toLocaleTimeString('id-ID', {hour12:false});
+      logBox.innerHTML += `\n<span class="text-slate-500">[${time}]</span> <span class="${color}">${msg}</span>`;
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function updateBadge(text, colorClass) {
+      const badge = document.getElementById('statusBadge');
+      badge.innerHTML = `<div class="w-2 h-2 rounded-full ${colorClass}"></div> ${text}`;
+    }
+
+    function startTimer() {
+      buildStartTime = Date.now();
+      timerInterval = setInterval(() => {
+        const diff = Math.floor((Date.now() - buildStartTime) / 1000);
+        const m = String(Math.floor(diff / 60)).padStart(2, '0');
+        const s = String(diff % 60).padStart(2, '0');
+        document.getElementById('timerText').innerText = `${m}:${s}`;
+      }, 1000);
+    }
+
+    async function startBuild() {
+      const appName = document.getElementById('appName').value.trim();
+      const appUrl = document.getElementById('appUrl').value.trim();
+      const user = document.getElementById('ghUser').value.trim() || localStorage.getItem('ghUser');
+      const repo = document.getElementById('ghRepo').value.trim() || localStorage.getItem('ghRepo');
+      const token = document.getElementById('ghToken').value.trim() || localStorage.getItem('ghToken');
+      const branch = document.getElementById('ghBranch').value || localStorage.getItem('ghBranch');
+      
+      if (!appName || !appUrl || !user || !repo || !token) {
+        alert("Mohon isi Nama Aplikasi, URL, dan pastikan Setting Kredensial sudah diisi.");
+        switchTab('settings');
+        return;
+      }
+
+      const btn = document.getElementById('buildBtn');
+      document.getElementById('downloadContainer').classList.add('hidden');
+      document.getElementById('logBox').innerHTML = `<span class="text-blue-400">Inisialisasi sistem...</span>`;
+      
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> MEMPROSES...`;
+      updateBadge('Building', 'bg-yellow-400 animate-pulse');
+      
+      clearInterval(checkInterval);
+      clearInterval(timerInterval);
+      startTimer();
+
+      try {
+        updateLog("Menyambungkan ke Server Cloud...", "text-yellow-400");
+        const response = await fetch(`https://api.github.com/repos/${user}/${repo}/actions/workflows/build.yml/dispatches`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/vnd.github.v3+json',
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ ref: branch, inputs: { app_name: appName, app_url: appUrl } })
+        });
+
+        if (response.ok) {
+          updateLog("Request diterima! Mesin sedang merakit APK...", "text-emerald-400");
+          updateLog("Proses ini memakan waktu 2-4 menit. Jangan tutup halaman ini.");
+          
+          setTimeout(() => {
+            checkInterval = setInterval(() => checkStatus(user, repo, token), 10000);
+          }, 5000);
+        } else {
+          throw new Error("Gagal otorisasi. Cek Token & Repo.");
+        }
+      } catch (error) {
+        updateLog(`ERROR: ${error.message}`, "text-red-400");
+        resetUI();
+      }
+    }
+
+    async function checkStatus(user, repo, token) {
+      try {
+        updateLog("Memeriksa status server...", "text-slate-500");
+        const res = await fetch(`https://api.github.com/repos/${user}/${repo}/actions/runs?per_page=1`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (data.workflow_runs && data.workflow_runs.length > 0) {
+          const run = data.workflow_runs[0];
+          
+          if (run.status === "completed") {
+            clearInterval(checkInterval);
+            clearInterval(timerInterval);
+            
+            if (run.conclusion === "success") {
+              updateLog("BUILD SUKSES! Mengambil file APK...", "text-emerald-400");
+              updateBadge('Ready', 'bg-emerald-500');
+              getArtifact(user, repo, token, run.id);
+            } else {
+              updateLog("BUILD GAGAL. Cek error di GitHub.", "text-red-400");
+              resetUI();
+            }
+          }
+        }
+      } catch (e) {
+        // Abaikan error jaringan sementara saat polling
+      }
+    }
+
+    async function getArtifact(user, repo, token, runId) {
+      try {
+        const res = await fetch(`https://api.github.com/repos/${user}/${repo}/actions/runs/${runId}/artifacts`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (data.artifacts && data.artifacts.length > 0) {
+          finalArtifactUrl = data.artifacts[0].archive_download_url;
+          document.getElementById('downloadContainer').classList.remove('hidden');
+          updateLog("File siap diunduh dan diinstall!", "text-blue-400 font-bold");
+          resetUI(true);
+        }
+      } catch (e) {
+        updateLog("Gagal mencari file hasil.", "text-red-400");
+        resetUI();
+      }
+    }
+
+    async function downloadApk() {
+      const token = document.getElementById('ghToken').value.trim() || localStorage.getItem('ghToken');
+      const btn = document.getElementById('downloadBtn');
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> MENGUNDUH...`;
+      
+      try {
+        const res = await fetch(finalArtifactUrl, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!res.ok) throw new Error("Gagal mengambil file");
+        
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Aplikasi-${Date.now()}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        
+        btn.innerHTML = `<i class="fa-solid fa-check"></i> BERHASIL DIUNDUH`;
+        setTimeout(() => {
+          btn.innerHTML = `<i class="fa-solid fa-download"></i> UNDUH & INSTALL LAGI`;
+        }, 3000);
+
+      } catch (e) {
+        alert("Gagal mendownload. Pastikan koneksi stabil.");
+        btn.innerHTML = `<i class="fa-solid fa-download"></i> UNDUH & INSTALL`;
+      }
+    }
+
+    function resetUI(success = false) {
+      const btn = document.getElementById('buildBtn');
+      btn.disabled = false;
+      btn.innerHTML = `<i class="fa-solid fa-rocket"></i> BUILD ULANG`;
+      if (!success) updateBadge('Standby', 'bg-slate-500');
+    }
+  </script>
+</body>
+</html>
